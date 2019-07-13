@@ -1,0 +1,314 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col col-lg-12">
+      <button class="btn btn-primary fa fa-plus" (click)="showAddModal()">Add</button>&nbsp;&nbsp;
+      <button class="btn btn-danger fa fa-trash" (click)="deleteAll()">Delete All</button>
+      <button class="fa fa-refresh float-right btn btn-primary" (click)="refreshData()">Refresh</button>
+    </div>
+  </div>
+  <br>
+  <div class="row mx-auto mb-4">
+    <input type="text" class="form-control col-lg-3" [(ngModel)]="filter">&nbsp;
+  </div>
+  <div class="row">
+    <div class="table table-responsive">
+      <table class="table table-bordered text-center">
+        <thead>
+          <th colspan="12" class="alert alert-info">User Details</th>
+        </thead>
+        <thead>
+          <th>
+            <label>
+              <input type="checkbox" [(ngModel)]="isSelect" (change)="SelectAll()">&nbsp; Select All
+            </label>
+          </th>
+          <th>Name</th>
+          <th>Date of Birth</th>
+          <th>Mobile Number</th>
+          <th>Email</th>
+          <th>Address</th>
+          <th>Gender</th>
+          <!-- <th>Hobbies</th> -->
+          <th>Age</th>
+          <th>Country</th>
+          <th>State</th>
+          <th>City</th>
+          <th>Options</th>
+        </thead>
+        <tbody *ngFor="let opt of lstData | filter:filter; let i= index;">
+          <ng-container *ngIf="editIndex != i">
+            <td>
+              <input type="checkbox" (change)="checkboxSelect(opt)" [(ngModel)]="opt.isSelect"
+                [disabled]="editIndex > -1 ? true : false">
+            </td>
+            <td>{{opt.name}} </td>
+            <td> {{opt.date | date:'dd/MMM/yyyy'}} </td>
+            <td>{{opt.number}}</td>
+            <td>{{opt.email}}</td>
+            <td>{{opt.address}}</td>
+            <td>{{opt.gender | titlecase}}</td>
+            <td>{{opt.age}}</td>
+            <td>{{opt.country}}</td>
+            <td>{{opt.state}}</td>
+            <td>{{opt.city}}</td>
+            <td> <button type="button" class="btn btn-success btn-sm fa fa-pencil" (click)="editRecord(i)"
+                [disabled]="editIndex > -1 ? true : false"></button>
+              &nbsp;&nbsp; <button type="button" class="btn btn-danger btn-sm fa fa-trash" (click)="deleteRow(i)"
+                [disabled]="editIndex > -1 ? true : false"></button></td>
+          </ng-container>
+          <ng-container *ngIf="editIndex == i">
+            <td></td>
+            <td>
+              <input type="text" [(ngModel)]="opt.name" class="form-control">
+            </td>
+            <td>
+              <input type="date" class="form-control" [(ngModel)]="opt.date">
+            </td>
+            <td>
+              <input type="text" maxlength="10" class="form-control" [(ngModel)]="opt.number">
+            </td>
+            <td>
+              <input type="text" class="form-control" [(ngModel)]="opt.email">
+            </td>
+            <td>
+              <textarea type="text" rows="3" class="form-control" [(ngModel)]="opt.address"></textarea>
+            </td>
+            <td>
+              <label> <input type="radio" name="gender" [(ngModel)]="opt.gender" value="Male">Male </label>
+              <label> <input type="radio" name="gender" [(ngModel)]="opt.gender" value="FeMale">Female </label>
+            </td>
+            <td>
+              <input type="text" maxlength="2" class="form-control" [(ngModel)]="opt.age">
+            </td>
+            <td>
+              <select type="text" class="form-control" (change)="getState(opt.country)" [(ngModel)]="opt.country">
+                <option value="">--Select Country--</option>
+                <option *ngFor="let country of lstCountry" [value]="country.Cid">{{country.Cname}}</option>
+              </select>
+            </td>
+            <td>
+              <select type="text" class="form-control" (change)="getCity(opt.state)" [(ngModel)]="opt.state">
+                <option value="">--Select State--</option>
+                <option *ngFor="let state of lstState" [value]="state.Sid">{{state.Sname}}</option>
+              </select>
+            </td>
+            <td>
+              <select type="text" class="form-control" [(ngModel)]="opt.city">
+                <option value="">--Select City--</option>
+                <option *ngFor="let city of lstCity" [value]="city.Ctid">{{city.Ctname}}</option>
+              </select>
+            </td>
+            <td>
+              <button class="btn btn-primary fa fa-save" (click)="saveChanges(i)"></button>
+              &nbsp;&nbsp; <button type="button" class="btn btn-dark btn-sm fa fa-remove"
+                (click)="cancelEdit(i)"></button>
+            </td>
+          </ng-container>
+        </tbody>
+        <tbody *ngIf="lstData?.length == 0">
+          <tr>
+            <td colspan="12" class="alert alert-warning">There is no any records available</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Modal window -->
+<div class="modal fade" #AddModal="bs-modal" bsModal tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #3394ee; color: white; height: 50px">
+        <h5 class="modal-class" id="exampleModalLabel">{{modaltitle}}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="closeModel()">
+          <span aria-hidden="true" style="color: white">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="container">
+          <form [formGroup]="testForm">
+            <div class="row">
+              <label class="col col-lg-2 col-form-label">Name</label>
+              <div class="col col-lg-10">
+                <input type="text" class="form-control" formControlName="name"
+                  onkeydown="this.value=this.value.replace()">
+                <span
+                  *ngIf="testForm.get('name').invalid && (testForm.get('name').dirty || testForm.get('name').touched)">
+                  <span *ngIf="testForm.get('name').errors.required" class="invalid">
+                    Name is required
+                  </span>
+                </span>
+              </div>
+            </div>
+            <br>
+            <div class="row">
+              <label for="Date" class="col col-lg-2 col-form-label">DOB</label>
+              <div class="col col-lg-10">
+                <input type="date" class="form-control" id="Date" formControlName="date">
+                <span
+                  *ngIf="testForm.get('date').invalid && (testForm.get('date').dirty || testForm.get('date').touched)">
+                  <span *ngIf="testForm.get('date').errors.required" class="invalid">
+                    Date is required
+                  </span>
+                </span>
+              </div>
+            </div>
+            <br>
+            <div class="row">
+              <label for="Number" class="col col-lg-2 col-form-label">Mobile No.</label>
+              <div class="col col-lg-10">
+                <input type="text" class="form-control" maxlength="10" id="Number" formControlName="mobilenumber">
+                <span
+                  *ngIf="testForm.get('mobilenumber').invalid && (testForm.get('mobilenumber').dirty || testForm.get('mobilenumber').touched)">
+                  <span *ngIf="testForm.get('mobilenumber').errors.required" class="invalid">
+                    Mobile Number is required<br>
+                  </span>
+                  <span *ngIf="testForm.get('mobilenumber').errors.pattern" class="invalid">
+                    Mobile number should be have only numbers and 10 characters only <br>
+                  </span>
+                </span>
+              </div>
+            </div>
+            <br>
+            <div class="row">
+              <label for="email" class="col col-lg-2 col-form-label">Email</label>
+              <div class="col col-lg-10">
+                <input type="text" class="form-control" id="email" formControlName="email">
+                <span
+                  *ngIf="testForm.get('email').invalid && (testForm.get('email').dirty || testForm.get('email').touched)">
+                  <span *ngIf="testForm.get('email').errors.required" class="invalid">
+                    Email is required.
+                  </span>
+                  <span class="text-danger"
+                    *ngIf="testForm.get('email').hasError('email') && (testForm.get('email').dirty || testForm.get('email').touched)">
+                    Please enter valid email address</span>
+                </span>
+              </div>
+            </div>
+            <br>
+            <div class="row">
+              <label for="address" class="col col-lg-2 col-form-label">Address</label>
+              <div class="col col-lg-10">
+                <textarea type="text" rows="2" class="form-control" id="address" formControlName="address"></textarea>
+                <span
+                  *ngIf="testForm.get('address').invalid && (testForm.get('address').dirty || testForm.get('address').touched)">
+                  <span *ngIf="testForm.get('address').errors.required" class="invalid">
+                    Address is required
+                  </span>
+                </span>
+              </div>
+            </div>
+            <br>
+            <div class="row">
+              <label class="col col-lg-2 col-form-label">Gender</label>
+              <div class="col col-lg-10">
+                <label>
+                  <input type="radio" name="gender" value="Male" formControlName="gender">Male
+                </label>
+                <label>
+                  <input type="radio" name="gender" value="FeMale" formControlName="gender">Female
+                </label>
+              </div>
+            </div>
+            <br>
+            <!-- <div class="row">
+              <label class="col col-lg-2 col-form-label">Hobbies</label>
+              <div class="col col-lg-10">
+                <label  *ngFor="let hobbie of lstHobbies">
+                  <input type="checkbox" name="hobbie" (change)="getHobbies()" formControlName="hobbie">{{hobbie.hobbieName}} 
+                </label>
+              </div>
+            </div>
+            <br> -->
+            <div class="row">
+              <label for="age" class="col col-lg-2 col-form-label">Age</label>
+              <div class="col col-lg-10">
+                <input type="text" class="form-control" id="age" formControlName="age" maxlength="2" minlength="1">
+                <span *ngIf="testForm.get('age').invalid && (testForm.get('age').dirty || testForm.get('age').touched)">
+                  <span *ngIf="testForm.get('age').errors.required" class="invalid">
+                    Age is required
+                  </span>
+                  <span *ngIf="testForm.get('age').errors.pattern" class="invalid">
+                    Enter only digit <br>
+                  </span>
+                </span>
+              </div>
+            </div>
+            <br>
+            <div class="row">
+              <label for="country" class="col col-lg-2 col-form-label">Country</label>
+              <div class="col col-lg-10">
+                <select type="text" class="form-control" (change)="getState()" formControlName="country">
+                  <option value="">--Select Country--</option>
+                  <option *ngFor="let country of lstCountry" [value]="country.Cid">{{country.Cname}}</option>
+                </select>
+                <span
+                  *ngIf="testForm.get('country').invalid && (testForm.get('country').dirty || testForm.get('country').touched)">
+                  <span *ngIf="testForm.get('country').errors.required" class="invalid">
+                    Please selete your country<br>
+                  </span>
+                </span>
+              </div>
+            </div>
+            <br>
+            <div class="row">
+              <label for="state" class="col col-lg-2 col-form-label">State</label>
+              <div class="col col-lg-10">
+                <select type="text" class="form-control" id="state" (change)="getCity()" formControlName="state">
+                  <option value="">--Select State--</option>
+                  <option *ngFor="let state of lstState" [value]="state.Sid">{{state.Sname}}</option>
+                </select>
+                <span
+                  *ngIf="testForm.get('state').invalid && (testForm.get('state').dirty || testForm.get('state').touched)">
+                  <span *ngIf="testForm.get('state').errors.required" class="invalid">
+                    Please selete your state<br>
+                  </span>
+                </span>
+              </div>
+            </div>
+            <br>
+            <div class="row">
+              <label for="city" class="col col-lg-2 col-form-label">City</label>
+              <div class="col col-lg-10">
+                <select type="text" class="form-control" id="city" formControlName="city">
+                  <option value="">--Select City--</option>
+                  <option *ngFor="let city of lstCity" [value]="city.Ctid">{{city.Ctname}}</option>
+                </select>
+                <span
+                  *ngIf="testForm.get('city').invalid && (testForm.get('city').dirty || testForm.get('city').touched)">
+                  <span *ngIf="testForm.get('city').errors.required" class="invalid">
+                    Please selete your city<br>
+                  </span>
+                </span>
+              </div>
+            </div>
+            <br>
+          </form>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary float-right" (click)="AddRecord()">{{modalBtn}}</button>
+        <button class="btn btn-danger" (click)="closeModel()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- delete modal window -->
+<!-- <div class="modal fade" #DeleteModal="bs-modal" bsModal tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-md">
+      <div class="modal-content">
+        <div class="modal-body">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true" (click)="close()"></button>
+          Are you sure you want to delete this record?
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-danger float-left btn-sm" (click)="closeModel()">Close</button>
+          <button class="btn btn-primary btn-sm" (click)="deleteRecord(i)">OK</button>
+        </div>
+      </div>
+    </div>
+  </div> -->
